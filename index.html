@@ -6,6 +6,8 @@
     CODG136 Assignment 3 by Claus Rinner, Ryerson University
     Story map extension of Assignment 1 with input from Assignment 2
     Inspired by AGO Anthropocene Exhibit and https://theanthropocene.org/
+
+    Created April 2020; last updated March 2024
   -->
 
 <head>
@@ -14,14 +16,14 @@
   <!-- For responsive design for mobile devices -->
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
 
-  <title>Mapping the Anthropocene</title>
+  <title>Scrolly-Mapping the Anthropocene</title>
 
-  <!-- Import Leaflet libraries -->
+  <!-- Import Leaflet libraries (from ~2020) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="leaflet-hash.js"></script>
 
-  <!-- Import scroll library (JQuery version) -->
+  <!-- Import scroll library (JQuery version - from ~2020) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="jquery.scrollstory.js"></script>
 
@@ -157,7 +159,7 @@
       <h3>Phosphor Tailings, Florida</h3>
       <img width='240' src="sarasota-magazine_headline.png" />
       <p>"... But from time to time, a problem crops up at one of the gyp stacks. Then the pond pooled on top spills out and threatens to poison a creek, a bay, or drinking water for miles around. The phosphate industry’s benign image cracks apart."</p>
-      <small>Source: <a href="https://www.sarasotamagazine.com/news-and-profiles/2017/04/florida-phosphate">Sarasota Magazine (May 2017)</a></small>
+      <small>Source: <a href="https://www.sarasotamagazine.com/news-and-profiles/2017/04/florida-phosphate" target='_blank'>Sarasota Magazine (May 2017)</a></small>
       <p align='right'><a href="#location0"> &barwedge; </a>|<a href="#location0"> &wedge; </a>|<a onclick="map.flyTo([27.8506, -81.9139], 15)"> &circlearrowright; </a>|<a href="#location2"> &vee; </a>|<a href="#location4"> &veebar; </a></p>
       <p>&nbsp;</p>
     </div>
@@ -168,7 +170,7 @@
       <img width='240' src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Garzweiler_Tagebau-1230.jpg/320px-Garzweiler_Tagebau-1230.jpg" />
       <p>"Garzweiler is a surface mine in the German state of North-Rhine Westphalia ... used for mining lignite. The mine currently has a size of 48 km² and got its name from the village of Garzweiler which previously existed at this location."</p>
       <!--embed onload="scrollTo(0, 100)" width='240' height='240' src="https://en.m.wikipedia.org/wiki/Garzweiler_surface_mine"-->
-      <small>Source: <a href="https://en.wikipedia.org/wiki/Garzweiler_surface_mine" target=_blank>Wikipedia</a></small>
+      <small>Source: <a href="https://en.wikipedia.org/wiki/Garzweiler_surface_mine" target='_blank'>Wikipedia</a></small>
       <p align='right'><a href="#location0"> &barwedge; </a>|<a href="#location1"> &wedge; </a>|<a onclick="map.flyTo([50.883284, 6.508676], 14)"> &circlearrowright; </a>|<a href="#location3"> &vee; </a>|<a href="#location4"> &veebar; </a></p>
       <p>&nbsp;</p>
     </div>
@@ -178,7 +180,7 @@
       <h3>Irrigation, Saudi Arabia</h3>
       <p>"... Saudi Arabia reaches these underground rivers and lakes by drilling through the desert floor, directly irrigating the fields with a circular sprinkler system. This technique is called center-pivot irrigation. </p>
       <p>Because rainfall in this area is now only a few centimeters (about one inch) each year, water here is a non-renewable resource. Although no one knows how much water is beneath the desert, hydrologists estimate it will only be economical to pump water for about 50 years."</p>
-      <small>Source: <a href="https://svs.gsfc.nasa.gov/11290" target=_blank>NASA's Goddard Space Flight Center</a></small>
+      <small>Source: <a href="https://svs.gsfc.nasa.gov/11290" target='_blank'>NASA's Goddard Space Flight Center</a></small>
       <p align='right'><a href="#location0"> &barwedge; </a>|<a href="#location2"> &wedge; </a>|<a onclick="map.flyTo([26.249301, 43.609932], 11)"> &circlearrowright; </a>|<a href="#location4"> &vee; </a>|<a href="#location4"> &veebar; </a></p>
       <p>&nbsp;</p>
     </div>
@@ -189,7 +191,7 @@
       <img width='240' src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Terrace_field_yunnan_china_edit.jpg/320px-Terrace_field_yunnan_china_edit.jpg" />
       <p>"Fields can be built into steep hillsides as terraces and adjacent to depressed or steeply sloped features such as rivers or marshes. They can require a great deal of labor and materials to create, and need large quantities of water for irrigation."</p>
       <p>"Paddy fields are a major source of atmospheric methane and have been estimated to contribute in the range of 50 to 100 million tonnes of the gas per annum."</p>
-      <small>Source: <a href="https://en.wikipedia.org/wiki/Paddy_field" target=_blank>Wikipedia</a></small>
+      <small>Source: <a href="https://en.wikipedia.org/wiki/Paddy_field" target='_blank'>Wikipedia</a></small>
       <p align='right'><a href="#location0"> &barwedge; </a>|<a href="#location3"> &wedge; </a>|<a onclick="map.flyTo([24.647780, 102.055723], 17)"> &circlearrowright; </a>|<a href="#location4"> &vee; </a>|<a href="#location4"> &veebar; </a></p>
       <p>&nbsp;</p>
     </div>
@@ -253,7 +255,7 @@
     var halfViewportHeight = Math.floor(viewportHeight / 2); 
 
 // for testing
-console.log('scroll div height = ' + viewportHeight + ', half of that being ' + halfViewportHeight); 
+//console.log('scroll div height = ' + viewportHeight + ', half of that being ' + halfViewportHeight); 
 
     // The following code uses the scrollstory library, https://github.com/sjwilliams/scrollstory
     // ...with code samples from view-source:https://pudding.cool/process/how-to-implement-scrollytelling/demo/scrollstory/
@@ -268,7 +270,7 @@ console.log('scroll div height = ' + viewportHeight + ', half of that being ' + 
           var zoom = item.data.z
 
 // for testing
-console.log('trigger on ' + item  + '. Fly to ' + centre + ' at zoom level ' + zoom)
+//console.log('trigger on ' + item  + '. Fly to ' + centre + ' at zoom level ' + zoom)
 
           // Animated map move to new location. 
           // Finally resolved an issue resulting from the HTML/CSS definition of the divs...
