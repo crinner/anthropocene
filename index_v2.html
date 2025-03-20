@@ -131,7 +131,7 @@
   <!-- This section includes text, images, references -->
   <div id='scrollDiv'>
 
-<!-- Version 3: Dynamically load trigger data from triggers.csv and fit map bounds to all coordinates with 25% padding -->
+<!-- Version 4: CSV-based dynamic triggers with five navigation icons -->
 <!-- Include Papa Parse from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 <script>
@@ -166,11 +166,32 @@
         div.dataset.y = data.lat;
         div.dataset.z = data.zoom;
 
-        // Build basic navigation (previous/next links)
+        // Build full navigation with five icons:
+        // All the way up: always points to the first item (inactive if already the first)
+        const navAllUp = index > 0 ?
+          `<a href="#${triggersData[0].id}"> &barwedge; </a>` :
+          `<span style="color: grey;"> &barwedge; </span>`;
+
+        // Up: points to previous item (inactive if first)
+        const navUp = index > 0 ?
+          `<a href="#${triggersData[index - 1].id}"> &wedge; </a>` :
+          `<span style="color: grey;"> &wedge; </span>`;
+
+        // Reload: always active, reloads the current trigger's map view.
+        const navReload = `<a onclick="map.flyTo([${data.lat}, ${data.lng}], ${data.zoom})"> &circlearrowright; </a>`;
+
+        // Down: points to next item (inactive if last)
+        const navDown = index < triggersData.length - 1 ?
+          `<a href="#${triggersData[index + 1].id}"> &vee; </a>` :
+          `<span style="color: grey;"> &vee; </span>`;
+
+        // All the way down: points to the last item (inactive if already the last)
+        const navAllDown = index < triggersData.length - 1 ?
+          `<a href="#${triggersData[triggersData.length - 1].id}"> &veebar; </a>` :
+          `<span style="color: grey;"> &veebar; </span>`;
+
         const navHTML = `<p align="right">
-          ${index > 0 ? `<a href="#${triggersData[index - 1].id}"> &barwedge; </a>|` : ''}
-          <a onclick="map.flyTo([${data.lat}, ${data.lng}], ${data.zoom})"> &circlearrowright; </a>
-          ${index < triggersData.length - 1 ? `|<a href="#${triggersData[index + 1].id}"> &vee; </a>` : ''}
+          ${navAllUp} | ${navUp} | ${navReload} | ${navDown} | ${navAllDown}
           </p>`;
 
         div.innerHTML = `<p>&nbsp;</p>
@@ -193,7 +214,7 @@
       const sites = L.layerGroup(markers);
       map.addLayer(sites);
 
-      // Compute the bounds of all coordinates and pad by 25% (i.e., extra space on all sides)
+      // Compute the bounds of all coordinates and pad by 25%
       const coords = triggersData.map(data => [data.lat, data.lng]);
       const bounds = L.latLngBounds(coords).pad(0.25);
       map.fitBounds(bounds);
@@ -220,6 +241,7 @@
       console.error('Error loading CSV file:', error);
     });
 </script>
+
 
   </div> <!-- end of scroll panel -->
 
