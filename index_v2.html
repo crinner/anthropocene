@@ -166,7 +166,7 @@
       
       // --- Dynamic CSV Loading and Marker/Trigger Creation ---
       // Load triggers from triggers.csv (ensure it is in the same directory)
-      fetch('triggers.csv')
+      fetch('triggers_ottawa.csv')
         .then(response => response.text())
         .then(csvText => {
           // Parse CSV data using Papa Parse. CSV headers: id, title, lat, lng, zoom, content
