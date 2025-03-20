@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <!-- Responsive design -->
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Mapping the Anthropocene</title>
+    <title>Mapping Ottawa Tourist Attractions</title>
     
     <!-- Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
@@ -38,13 +38,15 @@
         z-index: 401;
       }
       
-      /* Container for scroll panel */
+      /* Container for the scroll panel */
+      /* Set pointer-events to none so that it doesn't block map controls */
       #containerDiv {
         position: relative;
         z-index: 402;
+        pointer-events: none;
       }
       
-      /* Scroll panel styles */
+      /* Scroll panel styles – re-enable pointer-events here */
       #scrollDiv {
         position: absolute;
         top: 0;
@@ -56,6 +58,7 @@
         background: rgba(0,0,0,0.5);
         overflow: auto;
         z-index: 404;
+        pointer-events: auto;
       }
       
       /* Mobile settings */
@@ -76,6 +79,7 @@
           height: 40%;
           overflow: auto;
           z-index: 402;
+          pointer-events: none;
         }
         #scrollDiv {
           position: absolute;
@@ -87,6 +91,7 @@
           background: rgba(0,0,0,0.5);
           overflow: auto;
           z-index: 404;
+          pointer-events: auto;
         }
       }
       
@@ -124,30 +129,36 @@
     <script>
       // Create the Leaflet map
       var map = L.map('mapDiv', {
-        center: [24, 48],
-        zoom: 2,
+        center: [45.424, -75.697], // approximate central Ottawa location
+        zoom: 13,
         attributionControl: false,
-        zoomControl: false
+        zoomControl: false  // we add our custom zoom control below
       });
       
       // Activate URL hashing to reflect the map state in the URL
       var hash = new L.Hash(map);
       
-      // Define base layers
+      // Define base layers:
+      // OpenStreetMap for a street map view (default)
       var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: 'Basemap &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+        maxZoom: 19,
+        attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       });
+      // Esri World Imagery for satellite view
       var imgLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 18,
         attribution: 'Tiles &copy; Esri'
       });
       
-      // Add default layer (satellite imagery)
-      map.addLayer(imgLayer);
+      // Add default layer: street map (OSM)
+      map.addLayer(osmLayer);
       
-      // Add layer control
-      L.control.layers({"OpenStreetMap": osmLayer, "Esri World Imagery": imgLayer}, {}, {collapsed: false, sortLayers: true}).setPosition('topleft').addTo(map);
+      // Add layer control to allow switching between street and satellite views
+      L.control.layers({
+          "OpenStreetMap (Street Map)": osmLayer,
+          "Esri World Imagery (Satellite)": imgLayer
+        }, {}, {collapsed: false, sortLayers: true}
+      ).setPosition('topleft').addTo(map);
       
       // Add zoom control and attribution
       L.control.zoom({position: 'topleft'}).addTo(map);
@@ -155,7 +166,7 @@
       
       // --- Dynamic CSV Loading and Marker/Trigger Creation ---
       // Load triggers from triggers.csv (ensure it is in the same directory)
-      fetch('triggers_ottawa.csv')
+      fetch('triggers.csv')
         .then(response => response.text())
         .then(csvText => {
           // Parse CSV data using Papa Parse. CSV headers: id, title, lat, lng, zoom, content
