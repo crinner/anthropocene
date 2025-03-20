@@ -1,0 +1,316 @@
+<!doctype html>
+
+<html>
+
+  <!--
+    CODG136 Assignment 3 by Claus Rinner, Ryerson University
+    Story map extension of Assignment 1 with input from Assignment 2
+    Inspired by AGO Anthropocene Exhibit and https://theanthropocene.org/
+  -->
+
+<head>
+  <meta charset=utf-8 />
+
+  <!-- For responsive design for mobile devices -->
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  <title>Mapping the Anthropocene</title>
+
+  <!-- Import Leaflet libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="leaflet-hash.js"></script>
+
+  <!-- Import scroll library (JQuery version) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="jquery.scrollstory.js"></script>
+
+  <style>
+
+    /* Use full browser page height and width */
+    html, body, #containerDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #mapDiv {
+      position: fixed;    /* important, triggers on scrollDiv won't work otherwise */
+      top: 0px;
+      height: 100%;
+      left: 0px;
+      width: 100%;
+      z-index: 401;
+    }
+
+    /* Place semi-transparent scroll text over map on right side of page */
+    #scrollDiv {
+      position: absolute;
+      top: 0px;
+/*      height: 100%;   /* do not set to 100%, triggers won't work */
+      overflow: auto;
+      right: 0px;
+      width: 480px;
+      padding: 0 15px;
+      color: white;
+      font-family: sans-serif;
+      background: rgba(0,0,0,0.5);
+      z-index: 404;
+    }
+
+    /* Responsive design settings for mobile devices */
+    /* To fix scroll panel at bottom, additional containerDiv was required. */
+    /* The scroll triggers still don't work; thus added the 'reload' icon for manual fly-to */
+    @media only screen and (max-width: 768px) {
+      #mapDiv {
+        position: fixed;    /* important, triggers on scrollDiv won't work otherwise */
+        top: 0px;
+        height: 100%;
+        left: 0px;
+        width: 100%;
+        z-index: 401;
+      }
+      #containerDiv {
+        position: fixed;    /* important, triggers on scrollDiv won't work otherwise */
+        left: 0px; 
+        width: 100%;
+        bottom: 0px;
+        height: 40%;
+        overflow: auto;
+        z-index: 402;
+      }
+      #scrollDiv {
+        position: absolute;
+        left: 0px;
+        width: 100%;
+        top: 0px;     /* relative to container */
+        height: 100%;
+        padding: 0 15px;
+        color: white;
+        font-family: sans-serif;
+        background: rgba(0,0,0,0.5);
+        overflow: auto;
+        z-index: 404;
+      }
+    }
+
+    /* (un)visited links: don't underline b/c it conflicts with the navigation vees and wedges */
+    a:link, a:visited {
+      color: lightgrey;
+      text-decoration: none;
+    }
+
+    /* mouse over and active links */
+    a:hover, a:active {
+      color: grey;
+      text-decoration: none;  // don't underline links
+    }
+
+  </style>
+  
+  <!-- Firefox-Leaflet work-around for "will-change" issue, https://github.com/flibbertigibbet/echo-locator/commit/e4b51bc053f3deba4aedb6cc431975e94af3fd6c -->
+  <style>
+    .leaflet-fade-anim .leaflet-tile .leaflet-zoom-anim .leaflet-zoom-animated {
+      will-change: unset;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Map canvas -->
+  <div id='mapDiv'></div>
+
+  <!-- Help with CSS positioning... -->
+  <div id='containerDiv'>
+
+  <!-- Semi-transparent scroll overlay panel -->
+  <!-- Tip for scrollable sub-div style found at https://stackoverflow.com/questions/9811465/scrollable-div-inside-container#9811485 -->
+  <!-- This section includes text, images, references -->
+  <div id='scrollDiv'>
+
+<!-- Version 3: Dynamically load trigger data from triggers.csv and fit map bounds to all coordinates with 25% padding -->
+<!-- Include Papa Parse from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script>
+  // Load the CSV file containing trigger data
+  fetch('triggers.csv')
+    .then(response => response.text())
+    .then(csvText => {
+      // Parse CSV data using Papa Parse; CSV should have header columns: id, title, lat, lng, zoom, content
+      const results = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true
+      });
+      const triggersData = results.data.map(row => ({
+        id: row.id,
+        title: row.title,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        zoom: parseInt(row.zoom),
+        content: row.content
+      }));
+
+      // Dynamically generate the narrative trigger HTML content inside the scrollDiv.
+      const scrollDiv = document.getElementById('scrollDiv');
+      scrollDiv.innerHTML = ''; // Clear any existing content
+
+      triggersData.forEach((data, index) => {
+        const div = document.createElement('div');
+        div.className = 'trigger';
+        div.id = data.id;
+        // Store coordinate and zoom level data as attributes for scrollStory
+        div.dataset.x = data.lng;
+        div.dataset.y = data.lat;
+        div.dataset.z = data.zoom;
+
+        // Build basic navigation (previous/next links)
+        const navHTML = `<p align="right">
+          ${index > 0 ? `<a href="#${triggersData[index - 1].id}"> &barwedge; </a>|` : ''}
+          <a onclick="map.flyTo([${data.lat}, ${data.lng}], ${data.zoom})"> &circlearrowright; </a>
+          ${index < triggersData.length - 1 ? `|<a href="#${triggersData[index + 1].id}"> &vee; </a>` : ''}
+          </p>`;
+
+        div.innerHTML = `<p>&nbsp;</p>
+                         <h2>${data.title}</h2>
+                         ${data.content}
+                         ${navHTML}
+                         <p>&nbsp;</p>`;
+        scrollDiv.appendChild(div);
+      });
+
+      // Create map markers dynamically from the CSV data.
+      const markers = triggersData.map(data => {
+        return L.circleMarker([data.lat, data.lng], {color: "#FFFFFF"})
+          .bindTooltip(data.title)
+          .on("click", function(){
+            map.flyTo([data.lat, data.lng], data.zoom);
+            document.getElementById(data.id).scrollIntoView({ behavior: "smooth" });
+          });
+      });
+      const sites = L.layerGroup(markers);
+      map.addLayer(sites);
+
+      // Compute the bounds of all coordinates and pad by 25% (i.e., extra space on all sides)
+      const coords = triggersData.map(data => [data.lat, data.lng]);
+      const bounds = L.latLngBounds(coords).pad(0.25);
+      map.fitBounds(bounds);
+
+      // Calculate trigger offset using the height of mapDiv
+      const viewportHeight = document.getElementById('mapDiv').getBoundingClientRect().height;
+      const triggerOffset = Math.floor(viewportHeight / 2);
+
+      // Initialize scrollStory with the calculated offset.
+      $(function(){
+        $("#scrollDiv").scrollStory({
+          contentSelector: '.trigger',
+          triggerOffset: triggerOffset,
+          itemfocus: function(ev, item) {
+            const centre = L.latLng(item.data.y, item.data.x);
+            const zoom = item.data.z;
+            map.flyTo(centre, zoom, { animate: true });
+          },
+          keyboard: true // Enable keyboard navigation with arrow keys
+        });
+      });
+    })
+    .catch(error => {
+      console.error('Error loading CSV file:', error);
+    });
+</script>
+
+  </div> <!-- end of scroll panel -->
+
+  </div> <!-- end of container -->
+
+  <!-- MAIN SCRIPT -->
+  <script>
+
+    // Create instance of Leaflet Map
+    var map = L.map('mapDiv', {
+      center: [24, 48], 
+      attributionControl: false, 
+      zoom: 2, 
+      zoomControl: false,   // set to false if you want to position the zoom controls elsewhere
+    }); 
+
+    // Activate URL hashing to dynamically add x/y and zoom level to map URL
+    // https://github.com/mlevans/leaflet-hash
+    var hash = new L.Hash(map); 
+
+    // Add base map (OSM)
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: 'Basemap &copy; <a href="https://www.openstreetmap.org/copyright" target=_blank>OpenStreetMap</a> contributors',
+    });
+
+    // Add base map (Esri world imagery)
+    // Basemap options examined via https://leaflet-extras.github.io/leaflet-providers/preview/
+    var imgLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
+    });
+
+    map.addLayer(imgLayer);   // don't add OSM layer yet, so that satellite appears as default
+    map.fitBounds(map.getBounds());
+
+    // Group and position white circle markers with tooltips at each site
+    // Click handler for map fly-to and scrolling to corresponding text
+    var loc1 = L.circleMarker([27.8506, -81.9139], {color: "#FFFFFF"}).bindTooltip("Phosphor Tailings, Florida").on("click", function(e){map.flyTo([27.8506, -81.9139], 15); document.getElementById('location1').scrollIntoView(true);}),
+        loc2 = L.circleMarker([50.883284, 6.508676], {color: "#FFFFFF"}).bindTooltip("Open Pit Mining, Germany").on("click", function(e){map.flyTo([50.883284, 6.508676], 14); document.getElementById('location2').scrollIntoView(true);}),
+        loc3 = L.circleMarker([26.249301, 43.609932], {color: "#FFFFFF"}).bindTooltip("Irrigation, Saudi Arabia").on("click", function(e){map.flyTo([26.249301, 43.609932], 11); document.getElementById('location3').scrollIntoView(true);}),
+        loc4 = L.circleMarker([24.647780, 102.055723], {color: "#FFFFFF"}).bindTooltip("Rice Paddies, China").on("click", function(e){map.flyTo([24.647780, 102.055723], 17); document.getElementById('location4').scrollIntoView(true);}); 
+
+    var sites = L.layerGroup([loc1, loc2, loc3, loc4]); 
+    map.addLayer(sites); 
+
+    // Legend/layer control placed at bottom left of map canvas
+    L.control.layers({"OpenStreetMap": osmLayer, "Esri World Imagery": imgLayer}, {"Sites": sites}, {collapsed: false, sortLayers: true}).setPosition('topleft').addTo(map); 
+
+    // Place zoom control in top left corner, but below legend/layers
+    L.control.zoom({position: 'topleft'}).addTo(map); 
+    L.control.attribution({position: 'bottomleft'}).addTo(map);
+
+    // SCROLLYTELLING FUNCTIONALITY STARTS HERE
+
+    // Set the trigger position to half the viewport height
+    // Important: use mapDiv height, not scrollDiv which extends below window!
+    var viewportHeight = document.getElementById('mapDiv').getBoundingClientRect().height; 
+    var halfViewportHeight = Math.floor(viewportHeight / 2); 
+
+// for testing
+console.log('scroll div height = ' + viewportHeight + ', half of that being ' + halfViewportHeight); 
+
+    // The following code uses the scrollstory library, https://github.com/sjwilliams/scrollstory
+    // ...with code samples from view-source:https://pudding.cool/process/how-to-implement-scrollytelling/demo/scrollstory/
+
+    // instantiate scrollStory using JQuery format
+    $(function(){
+      $("#scrollDiv").scrollStory({
+        contentSelector: '.trigger', 
+        triggerOffset: halfViewportHeight, 
+        itemfocus: function(ev, item) {
+          var centre = L.latLng(item.data.y, item.data.x)
+          var zoom = item.data.z
+
+// for testing
+console.log('trigger on ' + item  + '. Fly to ' + centre + ' at zoom level ' + zoom)
+
+          // Animated map move to new location. 
+          // Finally resolved an issue resulting from the HTML/CSS definition of the divs...
+          map.flyTo(centre, zoom, {
+            animate: true,
+            //duration: 2   // avoid because different travel distances require same speed
+          })
+        }, 
+        keyboard: true,   // allow story navigation using left/right arrow keys
+      })
+    });
+
+  </script>
+
+</body>
+
+</html>
